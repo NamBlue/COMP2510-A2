@@ -1,0 +1,1 @@
+gcc -ansi -W -Wall -pedantic a2.c -o a2

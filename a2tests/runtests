@@ -1,0 +1,66 @@
+#!/bin/bash
+
+check_output() {
+  cmp $1 my-$1 > /dev/null
+  if [ $? -eq 0 ]; then
+    printf "passed: "
+  else
+    printf "FAILED: : "
+  fi
+  printf "%s\n" "$2"
+}
+
+echo "Delete output (my-out*) files from previous tests?"
+echo "Press ctl-c to abort, any other key to delete the files & run tests"
+read x
+rm -f my-out? my-out??
+
+# both sets of the same size
+./a2 abc xyz < input > my-out01
+check_output out01 "./a2 abc xyz < input > my-out01"
+
+./a2 ab bc < input > my-out02
+check_output out02 "./a2 ab bc < input > my-out02"
+
+./a2 abaca vwxyz < input > my-out03
+check_output out03 "./a2 abaca vwxyz < input > my-out03"
+
+# 2nd set is larger
+./a2 aei vwxyz < input > my-out04
+check_output out04 "./a2 aei vwxyz < input > my-out04"
+
+# 1st set is larger
+./a2 abcdef xyz < input > my-out05
+check_output out05 "./a2 abcdef xyz < input > my-out05"
+
+./a2 abacaba vwxyz < input > my-out06
+check_output out06 "./a2 abacaba vwxyz < input > my-out06"
+
+# with escape characters:
+./a2 '\n' x < input > my-out07
+check_output out07 "./a2 '\n' x < input > my-out07"
+
+./a2 'a\nc' xyz < input > my-out08
+check_output out08 "./a2 'a\nc' xyz < input > my-out08"
+
+./a2 'a\t\nc' wxyz < input > my-out09
+check_output out09 "./a2 'a\t\nc' wxyz < input > my-out09"
+
+./a2 '\\n' ab < input2 > my-out10
+check_output out10 "./a2 '\\\\n' ab < input2 > my-out10"
+
+./a2 ei 'x\n' < input2 > my-out11
+check_output out11 "./a2 ei 'x\n' < input2 > my-out11"
+
+./a2 '\tu' 'x\n' < input2 > my-out12
+check_output out12 "./a2 '\tu' 'x\n' < input2 > my-out12"
+
+# with ranges:
+./a2 a-z A-Z < input > my-out13
+check_output out13 "./a2 a-z A-Z < input > my-out13"
+
+./a2 A-Z a-z < input > my-out14
+check_output out14 "./a2 A-Z a-z < input > my-out14"
+
+./a2 a-e xyz < input > my-out15
+check_output out15 "./a2 -t a-e xyz < input > my-out15"

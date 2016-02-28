@@ -1,0 +1,1 @@
+	The purpose of this assignment is to write a program to translate, xsqueeze and delete characters read from standard input, writing to standard xoutput.	We'll explain some of these terms in more details further on.  xThe program is a very simplified version of the tr program available in Unix xsystems. xx
