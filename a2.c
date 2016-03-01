@@ -3,216 +3,87 @@
 #include<ctype.h>
 #include<string.h>
 #define LINESIZE 1024
-#define eof -2
+#define MAXSIZE 256
 
 /*
-Displays the menu
+Method prototypes
 */
-void displayMenu(void) {
-    printf("\n%s\n\n%s\n\n", "Welcome to my database!"
-            ,"Please choose a option: ");
-    printf("%s\n%s\n%s\n%s\n\n%s"
-            ," #) Modify record # if it exists"
-            ," 0) Display All"
-            ,"-1) Append a record"
-            ,"-2) Exit", ">");
-}
+int rangeCheck(char set[]);
 
 /*
-Opens the file for storing records
+Seperates the argument into two sets for target and destination characters
 */
-void openFile(FILE **file, const char address[]) {
-    if ((*file = fopen(address, "wb+")) == 0) {
-        perror("fopen");
-        exit(0);
+int storeSet(char *argv[], char set1[], char set2[]) {
+    int i, j;
+    for (i = 0; *argv[i] != ' '; i++) {
+        set1[i] = *argv[i];
     }
-}
-
-/*
-Closes the file for storing records
-*/
-void closeFile(FILE **file) {
-    if (fclose(*file) != 0) {
-        perror("fclose");
-        exit(0);
+    for (j = 0; *argv[i] != ' '; j++) {
+        set2[j] = *argv[i];
     }
-}
-
-/*
-Returns the choice from user input
-*/
-int getChoice(void) {
-    char input[LINESIZE];
-    int output = 0;
-    
-    if (!fgets(input, LINESIZE, stdin)) {
-        clearerr(stdin);
-        return eof;
-    }
-    if (sscanf(input, "%d", &output) == 1) {
-        if (output == eof) {
-            return eof;
-        }
-        return output;
-    }
-    return -3;
-}
-
-/*
-Prompts for and validates user input for Student ID appending or modifying
--returns a non zero value on failure, 0 for success
-*/
-int get_id(char *id) {
-    char input[LINESIZE];
-    char buffer[LINESIZE];
-    
-    while (1) {
-        printf("\n%s", "Enter the Student ID or -1 to return to main menu>");
-        if (!fgets(input, LINESIZE, stdin)) {
-            clearerr(stdin);
-            return 1;
-        }
-        if (sscanf(input, "%s", buffer) == 1) {
-            if (strcmp(buffer, "-1") == 0) {
-                return -1;
-            } 
-            if (strlen(buffer) == 9 && (char)tolower((int)buffer[0]) == 'a') {
-                int i;
-                for (i = 1; i < 9; i++) {
-                    if (buffer[i] < '0' || buffer[i] > '9') {
-                        break;
-                    }
-                }
-                if (i == 9) {
-                    sscanf(buffer, "%s ", id);
-                    return 0;
-                }
-            }
-        }
-    }
-}
-
-/*
-Prompts for and validates user input for Student Grade appending or modifying
-*/
-int get_grade(int *grade) {
-    char input[LINESIZE];
-    
-    while (1) {
-        printf("\n%s", "Enter the Student Grade or -1 to return to main menu>");
-        if (!fgets(input, LINESIZE, stdin)) {
-            clearerr(stdin);
-            return 1;
-        }
-        if (sscanf(input, "%d", grade) == 1) {
-            if (*grade == -1) {
-                return -1;
-            } 
-            if (*grade >= 0 && *grade <= 100) {
-                return 0;
-            }
-        }
-    }
-}
-
-/*
-Appends a record to the file
-*/
-void append(FILE *file) {
-    char id[11];
-    int grade;
-    
-    if (fseek(file, 0, SEEK_END) != 0) {
-        perror("fseek");
-    }
-    printf("\n%s\n", "Append a record");
-    if (get_id(id) == 0 && get_grade(&grade) == 0) {
-        fprintf(file, "%s %-3d\n", id, grade);
-        printf("\n%s\n", "Appending record...");
-    } else {
-        printf("\n%s\n", "Exiting append mode...");
-    }
-}
-
-/*
-Displays all records
-*/
-void displayAll(FILE *file) {
-    char buffer[LINESIZE];
-    char buffer2[LINESIZE];
-    int recnum = 0;
-    
-    rewind(file);
-    while(fscanf(file, "%s %s", buffer, buffer2) != EOF) {
-        recnum++;
-        fprintf(stderr, "%d %s %s\n", recnum, buffer, buffer2);
-    }  
-}
-
-/*
-Modifies the record at n
-*/
-void modifyRecord(int n, FILE * file) {
-    int recnum = n;
-    char buffer[LINESIZE];
-    char buffer2[LINESIZE];
-    char id[11];
-    int grade;
-    
-    n = 14 * (n - 1);
-    if (fseek(file, n, SEEK_SET) != 0) {
-        perror("fseek");
-    }
-    if (fscanf(file, "%s %s", buffer, buffer2) == EOF) {
-        return;
-    }
-    printf("\n%s\n", "Modifying record #: ");
-    fprintf(stderr, "%d %s %s\n", recnum, buffer, buffer2);
-    if (fseek(file, n, SEEK_SET) != 0) {
-        perror("fseek");
-    }
-    if (get_id(id) == 0 && get_grade(&grade) == 0) {
-        fprintf(file, "%s %-3d", id, grade);
-        printf("\n%s\n", "Modifying record...");
-    } else {
-        printf("\n%s\n", "Exiting modify mode...");
-    }
-}
-
-/*
-Main menu interface
-*/
-void run(FILE *file) {
-    int choice = 0;
-    
-    while (1) {
-        displayMenu();
-        choice = getChoice();
-        if (choice == -2) {
-            exit(0);
-        } else if (choice == -1) {
-            append(file);
-        } else if (choice == 0) {
-            displayAll(file);
-        } else if (choice > 0) {
-            modifyRecord(choice, file);
-        }
-    } 
+    return 0;
 }
 
 /*
 Main, the entry point
 */
 int main (int argc, char *argv[]) {
-    FILE *record = '\0';
-    char address[LINESIZE] = "./";
+    char set1[LINESIZE];
+    char set2[LINESIZE];
+    int i, a, b;
+    char c;
     
-    if (argc < 2) {
+        
+    if (argc != 3) {
+        fprintf(stderr, "%s\n%s\n", "Must specify two arguments when executing this program,"
+            ,"the target character set and then the destination character set");
         return 1;
     }
-    strcat(address, argv[1]);
-    openFile(&record, address);
-    run(record);
-    closeFile(&record);
+    
+    strcpy(set1, argv[1]);
+    strcpy(set2, argv[2]);
+    
+    rangeCheck(set1);
+    rangeCheck(set2);
+    
+    a = strlen(set1);
+    b = strlen(set2);
+    /*Truncate*/
+    if (a > b) {
+        set1[b] = '\0';
+    }
+    if (a < b) {
+        set2[a] = '\0';
+    }
+    
+    /*Translate*/
+    while((c = getchar()) != EOF) {
+        for (i = a; i > 0; i--) {
+            if(c == set1[i - 1] && set2[i - 1] != '\0') {
+                c = set2[i - 1];
+            }
+        }
+        putchar(c);
+    }
+    
+    return 0;
+}
+
+/*
+Checks the range of both sets
+*/
+int rangeCheck(char set[]) {
+    int i;
+    int a = strlen(set);
+
+    for (i = 0; i < a; i++) {
+        if (set[i] == '-' && (i != 0 || i != a - 1)) {
+            if (set[i - 1] > set[i + 1]) {
+               fprintf(stderr, "%s\n", "Invalid range of characters!!");
+               return 2;
+            }
+            i += 2;
+        }
+    }
     return 0;
 }
