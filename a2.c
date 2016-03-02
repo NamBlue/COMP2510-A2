@@ -9,7 +9,6 @@
 Method prototypes
 */
 int escapeCheck(char *set);
-int rangeCheck(char *set);
 int expandRange(char *set);
 int truncate(char *set1, char *set2);
 int translate(char *set1, char *set2);
@@ -20,6 +19,7 @@ Main, the entry point
 int main (int argc, char *argv[]) {
     char set1[LINESIZE];
     char set2[LINESIZE];
+    int i;
         
     if (argc != 3) {
         fprintf(stderr, "%s\n%s\n", "Must specify two arguments when executing this program,"
@@ -33,13 +33,17 @@ int main (int argc, char *argv[]) {
     escapeCheck(set1);
     escapeCheck(set2);
     
-    rangeCheck(set1);
-    rangeCheck(set2);
-    /*
-    Expand range
-    */
+    expandRange(set1);
+    expandRange(set2);
     
-    truncate(set1, set2);
+    truncate(set1, set2);/*
+    for (i=0; set1[i] != '\0' || set2[i] != '\0'; i++) {
+        putchar(set1[i]);
+        
+        putchar(set2[i]);
+        putchar('\n');
+        
+    }*/
     translate(set1, set2);
     return 0;
 }
@@ -103,43 +107,35 @@ int escapeCheck(char *set) {
 }
 
 /*
-Checks the range of both sets
+Checks and expands the range of both sets and checks if length exceeds MAXSIZE
 */
-int rangeCheck(char *set) {
-    int i;
-    int a = strlen(set);
+int expandRange(char *set) {
+    int i, j, k;
+    int len = strlen(set);
+    char a, b, temp[LINESIZE];
 
-    for (i = 0; i < a; i++) {
-        if (set[i] == '-' && (i != 0 || i != a - 1)) {
+    for (i = 0; i < len; i++) {
+        if (set[i] == '-' && (i != 0 || i != len - 1)) {
             if (set[i - 1] > set[i + 1]) {
                fprintf(stderr, "%s\n", "Invalid range of characters!!");
                exit(2);
             }
-            i += 2;
-        }
-    }
-    return 0;
-}
-
-/*
-Expands the range of both sets and checks if length exceeds MAXSIZE
-*/
-int expandRange(char *set) {
-    int i;
-    int len = strlen(set);
-    char a, b, temp[LINESIZE];
-    
-    strcpy(temp, set);
-
-    for (i = 0; i < len; i++) {
-        if (set[i] == '-' && (i != 0 || i != len - 1)) {
             a = set[i - 1];
             b = set[i + 1];
-            for (a; a < b; a++) {
-                /*Expand into a array and use strlen to get size changed*/
+            for (j = 0; a < b; a++, j++) {
+                temp[j] = a + 1;
+            }
+            temp[j] = '\0';
+            strcpy(&set[i + strlen(temp) - 1], &set[i + 2]);
+            for (j = i, k = 0; temp[k] != '\0'; k++, j++) {
+                set[j] = temp[k];
             }
             i += 2;
         }
+    }
+    if (sizeof(set) > MAXSIZE - 1) {
+        fprintf(stderr, "%s\n", "Argument length exceed 256 characters");
+        exit(3);
     }
     return 0;
 }
@@ -152,7 +148,6 @@ int truncate(char *set1, char *set2) {
     
     a = strlen(set1);
     b = strlen(set2);
-    
     if (a > b) {
         set1[b] = '\0';
     }
