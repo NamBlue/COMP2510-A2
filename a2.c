@@ -160,7 +160,7 @@ int truncate(char *set1, char *set2) {
 }
 
 /*
-Translates using set1 to set2 to standard output
+Translates using set1 to set2 into standard output
 */
 int translate(char *set1, char *set2) {
     int i;
