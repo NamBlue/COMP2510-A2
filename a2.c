@@ -108,7 +108,7 @@ int expandRange(char *set) {
     char a, b, temp[LINESIZE];
 
     for (i = 0; i < len; i++) {
-        if (set[i] == '-' && (i != 0 || i != len - 1)) {
+        if (set[i] == '-' && (i != 0 && i != len - 1)) {
             /*Checks*/
             if (set[i - 1] > set[i + 1]) {
                fprintf(stderr, "%s\n", "Invalid range of characters!!");
@@ -170,6 +170,7 @@ int translate(char *set1, char *set2) {
         for (i = strlen(set1); i > 0; i--) {
             if(c == set1[i - 1]) {
                 c = set2[i - 1];
+                break;
             }
         }
         putchar(c);
